@@ -158,7 +158,7 @@ const App = () => {
     }, [isAuthenticated, location]);
 
     return (
-        <Router>
+        <Router basename="/FinTracker"> {/* Add basename for GitHub Pages */}
             <div className="App">
                 <HeaderWrapper />
                 <main className="content-container">
