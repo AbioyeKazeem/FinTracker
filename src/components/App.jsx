@@ -157,7 +157,7 @@ const App = () => {
     }, [isAuthenticated]);
 
     return (
-        <Router>
+        <Router basename={process.env.PUBLIC_URL}>
             <div className="App">
                 <HeaderWrapper />
                 <main className="content-container">
@@ -228,6 +228,9 @@ const App = () => {
                                 <IncomeExpenseChart income={totalIncome} expense={totalExpense} />
                             </ProtectedRoute>
                         } />
+
+                        {/* Catch-all route for 404 */}
+                        <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                 </main>
                 <FooterWrapper />
