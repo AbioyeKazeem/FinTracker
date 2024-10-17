@@ -43,7 +43,7 @@ const App = () => {
     const [notificationLimit, setNotificationLimit] = useState(0);
     const [financialTips, setFinancialTips] = useState([]);
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
-        return localStorage.getItem('isAuthenticated') === 'false';
+        return localStorage.getItem('isAuthenticated') === 'true'; // Corrected the condition
     });
 
     const [spendingLimits, setSpendingLimits] = useState({
@@ -147,17 +147,18 @@ const App = () => {
     const totalExpense = expenseTransactions.reduce((total, transaction) => total + transaction.amount, 0);
 
     // Redirect to login if unauthenticated
+    const location = useLocation(); // Using useLocation
     useEffect(() => {
         const unprotectedRoutes = ["/login", "/signup", "/password-reset"];
-        const currentPath = window.location.pathname;
+        const currentPath = location.pathname; // Using the location hook
 
         if (!isAuthenticated && !unprotectedRoutes.includes(currentPath)) {
-            window.location.href = "/login"; // Redirect to login
+            setIsAuthenticated(false); // Ensure the state reflects unauthenticated
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, location]);
 
     return (
-        <Router basename={process.env.PUBLIC_URL}>
+        <Router>
             <div className="App">
                 <HeaderWrapper />
                 <main className="content-container">
@@ -228,9 +229,6 @@ const App = () => {
                                 <IncomeExpenseChart income={totalIncome} expense={totalExpense} />
                             </ProtectedRoute>
                         } />
-
-                        {/* Catch-all route for 404 */}
-                        <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                 </main>
                 <FooterWrapper />
