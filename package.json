@@ -1,7 +1,7 @@
 {
   "name": "myfintracker",
   "version": "0.1.0",
-  "homepage": "https://AbioyeKazeem.github.io/FinTracker/login",
+  "homepage": "https://AbioyeKazeem.github.io/FinTracker/",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.13.0",
