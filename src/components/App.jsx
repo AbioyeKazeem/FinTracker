@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from "react-router-dom";
+import { HashRouter as Router, Route, Routes, Navigate, useLocation } from "react-router-dom"; // Changed to HashRouter
 import Header from "./Header";
 import Footer from "./Footer";
 import TransactForm from "./TransactForm";
