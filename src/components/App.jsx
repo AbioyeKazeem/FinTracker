@@ -19,12 +19,17 @@ import FinancialTips from "./FinancialTips";
 import IncomeExpenseChart from "./IncExpChart";
 import NetworthTracker from "./NetworthTracker";
 import SpendingTrends from "./SpendingTrends";
+import DebtTracker from "./DebtTracker";
 import "../styles.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import DebtTracker from "./DebtTracker";
+
+// A reusable ProtectedRoute component
+const ProtectedRoute = ({ isAuthenticated, children }) => {
+    return isAuthenticated ? children : <Navigate to="/login" />;
+};
 
 const App = () => {
-    const [user, setUser] = useState({ name: "your name", email: "your email", phone:"Your phone number" });
+    const [user, setUser] = useState({ name: "your name", email: "your email", phone: "Your phone number" });
     const [transactions, setTransactions] = useState([]); // Storing transactions
     const [filteredTransactions, setFilteredTransactions] = useState([]);
     const [recurringTransactions, setRecurringTransactions] = useState([]);
@@ -38,7 +43,7 @@ const App = () => {
     const [notificationLimit, setNotificationLimit] = useState(0);
     const [financialTips, setFinancialTips] = useState([]);
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
-        return localStorage.getItem('isAuthenticated') === 'true';
+        return localStorage.getItem('isAuthenticated') === 'false';
     });
 
     const [spendingLimits, setSpendingLimits] = useState({
@@ -131,7 +136,7 @@ const App = () => {
     useEffect(()=> {
         const insights = spendingAnalyze(filteredTransactions);
         setFinancialTips(insights);
-    }, [setFilteredTransactions]);
+    }, [filteredTransactions]);
 
     // Split filtered transactions into income and expenses
     const incomeTransactions = filteredTransactions.filter(transaction => transaction.type === "income");
@@ -141,86 +146,88 @@ const App = () => {
     const totalIncome = incomeTransactions.reduce((total, transaction) => total + transaction.amount, 0);
     const totalExpense = expenseTransactions.reduce((total, transaction) => total + transaction.amount, 0);
 
+    // Redirect to login if unauthenticated
+    useEffect(() => {
+        const unprotectedRoutes = ["/login", "/signup", "/password-reset"];
+        const currentPath = window.location.pathname;
+
+        if (!isAuthenticated && !unprotectedRoutes.includes(currentPath)) {
+            window.location.href = "/login"; // Redirect to login
+        }
+    }, [isAuthenticated]);
+
     return (
         <Router>
             <div className="App">
                 <HeaderWrapper />
                 <main className="content-container">
                     <Routes>
+                        {/* Default redirect to login if unauthenticated */}
+                        <Route path="/" element={<Navigate to="/login" />} />
+
+                        {/* Authentication pages */}
                         <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
                         <Route path="/signup" element={<Signup />} />
                         <Route path="/password-reset" element={<Reset />} />
-                        <Route path="/profile" element={isAuthenticated ? (
-                            <ProfilePage
-                                user={user}
-                                updateUser={updateUser}
-                                changePassword={() => {}}
-                                userSettings={{}}
-                                updateSettings={() => {}}
-                                deleteAccount={() => {}}
-                            />
-                        ) : (
-                            <Navigate to="/login" />
-                        )} />
-                        <Route path="/dashboard" element={isAuthenticated ? (
-                            <>
-                                {/* Net Worth Tracker */}
-                                
-                                {/* <NetworthTracker transactions={transactions} /> */}
-                                <Balance transactions={filteredTransactions} />
 
-                                <hr />
+                        {/* Protected Routes */}
+                        <Route path="/profile" element={
+                            <ProtectedRoute isAuthenticated={isAuthenticated}>
+                                <ProfilePage
+                                    user={user}
+                                    updateUser={updateUser}
+                                    changePassword={() => {}}
+                                    userSettings={{}}
+                                    updateSettings={() => {}}
+                                    deleteAccount={() => {}}
+                                />
+                            </ProtectedRoute>
+                        } />
 
-                                {/*Spending Trends  */}
-                                <SpendingTrends transactions={transactions} />
-                                <hr />
+                        <Route path="/dashboard" element={
+                            <ProtectedRoute isAuthenticated={isAuthenticated}>
+                                <>
+                                    <Balance transactions={filteredTransactions} />
+                                    <hr />
+                                    <SpendingTrends transactions={transactions} />
+                                    <hr />
+                                    <SearchFilter
+                                        setSearchQuery={setSearchQuery}
+                                        setFilterCriteria={setFilterCriteria}
+                                        filterCriteria={filterCriteria}
+                                    />
+                                    <hr />
+                                    <Notifications
+                                        transactions={transactions}
+                                        limit={notificationLimit}
+                                        setNotificationLimit={setNotificationLimit}
+                                    />
+                                    <hr />
+                                    <ReccuringTransact addRecurringTransaction={addRecurringTransaction} />
+                                    <hr />
+                                    <TransactForm addTransaction={addTransaction} />
+                                    <hr />
+                                    <IncomeExpense transactions={filteredTransactions} />
+                                    <hr />
+                                    <FinancialTips tips={financialTips} />
+                                    <hr />
+                                    <TransactionList
+                                        incomeTransactions={incomeTransactions}
+                                        expenseTransactions={expenseTransactions}
+                                    />
+                                    <hr />
+                                    <DebtTracker transactions={transactions} />
+                                    <hr />
+                                    <ExportData transactions={transactions} />
+                                </>
+                            </ProtectedRoute>
+                        } />
 
-                                {/* Search Filter */}
-                                <SearchFilter
-                                    setSearchQuery={setSearchQuery}
-                                    setFilterCriteria={setFilterCriteria}
-                                    filterCriteria={filterCriteria}
-                                />
-                                <hr />
-                                {/* Notifications */}
-                                <Notifications
-                                    transactions={transactions}
-                                    limit={notificationLimit}
-                                    setNotificationLimit={setNotificationLimit}
-                                />
-                                <hr />
-                                {/* Recurring Transactions */}
-                                <ReccuringTransact addRecurringTransaction={addRecurringTransaction} />
-                                <hr />
-                                {/* Form for transactions */}
-                                <TransactForm addTransaction={addTransaction} />
-                                 <hr />
-                                {/* Balance and Income/Expense */}
-                                <IncomeExpense transactions={filteredTransactions} />
-                                 <hr />
-                                {/* Financial Tips */}
-                                <FinancialTips tips={financialTips}/>
-                                <hr />
-                                {/* Transaction List */}
-                                <TransactionList
-                                    incomeTransactions={incomeTransactions}
-                                    expenseTransactions={expenseTransactions}
-                                />
-                                <hr />
-                                <DebtTracker  transactions={transactions}  />
-                                <hr />
-                                {/* Export Data */}
-                                <ExportData transactions={transactions} />
-                            </>
-                        ) : (
-                            <Navigate to="/login" />
-                        )} />
-                        <Route path="/chart" element={isAuthenticated ? (
-                            <IncomeExpenseChart income={totalIncome} expense={totalExpense} />
-                        ) : (
-                            <Navigate to="/login" />
-                        )} />
-                        <Route path="/" element={<Navigate to="/login" />} />
+                        <Route path="/chart" element={
+                            <ProtectedRoute isAuthenticated={isAuthenticated}>
+                                <IncomeExpenseChart income={totalIncome} expense={totalExpense} />
+                            </ProtectedRoute>
+                        } />
                     </Routes>
                 </main>
                 <FooterWrapper />
@@ -229,15 +236,16 @@ const App = () => {
     );
 };
 
+// Conditionally render Header and Footer based on routes
 function HeaderWrapper() {
     const location = useLocation();
     const hideHeader = ["/login", "/signup", "/password-reset"].includes(location.pathname);
     return !hideHeader ? <Header /> : null;
-};
+}
 
 function FooterWrapper() {
     const location = useLocation();
-    const hideFooter =["/login", "/signup", "/password-reset"].includes(location.pathname);
+    const hideFooter = ["/login", "/signup", "/password-reset"].includes(location.pathname);
     return !hideFooter ? <Footer /> : null;
 }
 

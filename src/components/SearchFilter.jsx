@@ -1,16 +1,28 @@
 import React from "react";
-import { Form, Button, Row, Col } from "react-bootstrap";
+import { Form, Row, Col } from "react-bootstrap";
 
-const SearchFilter = ({ setSearchQuery, setFilterCriteria, filterCriteria }) => {
+const SearchFilter = ({ setSearchQuery, setFilterCriteria, filterCriteria = {} }) => {
+    // Destructure filterCriteria to ensure defaults
+    const {
+        date = "",
+        category = "",
+        minAmount = "",
+        maxAmount = ""
+    } = filterCriteria;
+
     function handleSearchChange(event) {
         setSearchQuery(event.target.value);
     }
 
     function handleFilterChange(event) {
         const { name, value } = event.target;
+
+        // Parse numbers for minAmount and maxAmount
+        const parsedValue = name === "minAmount" || name === "maxAmount" ? (value ? parseFloat(value) : "") : value;
+
         setFilterCriteria(prevCriteria => ({
             ...prevCriteria,
-            [name]: value
+            [name]: parsedValue
         }));
     }
 
@@ -35,7 +47,7 @@ const SearchFilter = ({ setSearchQuery, setFilterCriteria, filterCriteria }) => 
                             <Form.Control
                                 type="date"
                                 name="date"
-                                value={filterCriteria.date}
+                                value={date}
                                 onChange={handleFilterChange}
                             />
                         </Form.Group>
@@ -46,7 +58,7 @@ const SearchFilter = ({ setSearchQuery, setFilterCriteria, filterCriteria }) => 
                             <Form.Control
                                 as="select"
                                 name="category"
-                                value={filterCriteria.category}
+                                value={category}
                                 onChange={handleFilterChange}
                             >
                                 <option value="">Select Category</option>
@@ -65,8 +77,10 @@ const SearchFilter = ({ setSearchQuery, setFilterCriteria, filterCriteria }) => 
                             <Form.Control
                                 type="number"
                                 name="minAmount"
-                                value={filterCriteria.minAmount}
+                                value={minAmount}
                                 onChange={handleFilterChange}
+                                placeholder="0"
+                                min="0"
                             />
                         </Form.Group>
                     </Col>
@@ -76,8 +90,10 @@ const SearchFilter = ({ setSearchQuery, setFilterCriteria, filterCriteria }) => 
                             <Form.Control
                                 type="number"
                                 name="maxAmount"
-                                value={filterCriteria.maxAmount}
+                                value={maxAmount}
                                 onChange={handleFilterChange}
+                                placeholder="0"
+                                min="0"
                             />
                         </Form.Group>
                     </Col>
